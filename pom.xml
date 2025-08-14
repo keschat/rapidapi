@@ -12,14 +12,13 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.version>1.0.0-SNAPSHOT</project.version>
-        <maven.compiler.release>24</maven.compiler.release>
+        <maven.compiler.release>25</maven.compiler.release>
         <maven.version>3.9.11</maven.version>
-        <java.version>24</java.version>
-        <jetty.version>12.0.24</jetty.version>
-        <jersey.version>3.1.11</jersey.version>
-        <hk2.version>3.1.1</hk2.version>
+        <java.version>25</java.version>
+        <jetty.version>12.1.0.beta2</jetty.version>
+        <jersey.version>4.0.0-M2</jersey.version>
+        <weld.version>6.0.3.Final</weld.version>
         <mavenVersion>3.9.11</mavenVersion>
-        <!-- <version.maven-plugin-tools>3.9.0</version.maven-plugin-tools> -->
     </properties>
 
     <modules>
@@ -43,27 +42,65 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Jetty dependencies -->
+            <dependency>
+                <groupId>org.eclipse.jetty.ee11</groupId>
+                <artifactId>jetty-ee11-servlet</artifactId>
+                <version>12.1.0.beta2</version>
+            </dependency>
+            <!-- Jakarta dependencies -->
+            <dependency>
+                <groupId>jakarta.enterprise</groupId>
+                <artifactId>jakarta.enterprise.cdi-api</artifactId>
+                <version>4.1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>6.1.0</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-bom</artifactId>
+                <version>${jetty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty.ee11</groupId>
+                <artifactId>jetty-ee11-bom</artifactId>
+                <version>12.1.0.beta2</version>
+                <type>pom</type>
+            </dependency>
             <!-- Jersy dependencies -->
             <dependency>
-                <groupId>org.glassfish.jersey.core</groupId>
-                <artifactId>jersey-server</artifactId>
+                <groupId>org.glassfish.jersey</groupId>
+                <artifactId>jersey-bom</artifactId>
+                <version>${jersey.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.containers</groupId>
+                <artifactId>jersey-container-servlet-core</artifactId>
                 <version>${jersey.version}</version>
             </dependency>
-            <!-- Dependency management -->
+            <!-- CDI dependencies -->
             <dependency>
-                <groupId>org.glassfish.hk2</groupId>
-                <artifactId>hk2-api</artifactId>
-                <version>${hk2.version}</version>
+                <groupId>org.glassfish.jersey.inject</groupId>
+                <artifactId>jersey-cdi2-se</artifactId>
+                <version>${jersey.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.glassfish.hk2</groupId>
-                <artifactId>hk2-core</artifactId>
-                <version>${hk2.version}</version>
+                <groupId>org.jboss.weld</groupId>
+                <artifactId>weld-api</artifactId>
+                <version>6.0.Final</version>
             </dependency>
             <dependency>
-                <groupId>org.glassfish.hk2</groupId>
-                <artifactId>hk2-utils</artifactId>
-                <version>${hk2.version}</version>
+                <groupId>org.jboss.weld.se</groupId>
+                <artifactId>weld-se-core</artifactId>
+                <version>${weld.version}</version>
             </dependency>
             <!-- Security dependencies -->
             <dependency>
@@ -112,27 +149,6 @@
     <build>
         <pluginManagement>
             <plugins>
-                <!-- Exec plugin for running the application -->
-                <!-- <plugin>
-                    <groupId>org.glassfish.hk2</groupId>
-                    <artifactId>hk2-inhabitant-generator</artifactId>
-                    <version>3.1.1</version>
-                    <executions>
-                        <execution>
-                            <id>generate-inhabitants</id>
-                            <goals>
-                                <goal>generate-inhabitants</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.ow2.asm</groupId>
-                            <artifactId>asm</artifactId>
-                            <version>9.8</version>
-                        </dependency>
-                    </dependencies>
-                </plugin> -->
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
@@ -140,15 +156,19 @@
                     <extensions>true</extensions>
                     <executions>
                         <execution>
-                            <id>run-app</id>
-                            <phase>test</phase>
+                            <id>run-jetty</id>
+                            <phase>install</phase>
                             <goals>
                                 <goal>java</goal>
                             </goals>
                         </execution>
                     </executions>
                     <configuration>
+                        <arguments>
+                            <argument>-X</argument>
+                        </arguments>
                         <skip>true</skip>
+                        <!-- <fork>true</fork>  -->
                         <executable>mvn</executable>
                         <workingDirectory>${project.build.directory}</workingDirectory>
                         <mainClass>com.rapidapi.core.Application</mainClass>
@@ -172,7 +192,7 @@
                         <verbose>false</verbose>
                         <release>${maven.compiler.release}</release>
                         <compilerArgs>
-                            <arg>${maven.compiler.enablePreview}</arg>
+                            <arg>--enable-preview</arg>
                             <arg>-Xlint:all</arg>
                             <!-- <arg>-Averbose=false</arg> -->
                         </compilerArgs>
@@ -180,13 +200,6 @@
                         <showWarnings>${maven.compiler.showWarnings}</showWarnings>
                         <failOnError>${maven.compiler.failOnError}</failOnError>
                         <failOnWarning>true</failOnWarning>
-                        <!-- <annotationProcessorPaths>
-                            <annotationProcessorPath>
-                                <groupId>org.glassfish.hk2</groupId>
-                                <artifactId>hk2-metadata-generator</artifactId>
-                                <version>${hk2.version}</version>
-                            </annotationProcessorPath>
-                        </annotationProcessorPaths> -->
                     </configuration>
                 </plugin>
                 <plugin>
@@ -216,11 +229,11 @@
                                 <failOnWarning>true</failOnWarning>
                                 <verbose>true</verbose>
                                 <ignoredDependencies>
-                                    org.glassfish.hk2:hk2-locator:jar:*,org.glassfish.hk2:hk2-core:jar:*,
+                                    <!-- org.jboss.weld.servlet:weld-servlet-core:jar:*, -->
                                     org.eclipse.jetty:jetty-alpn-conscrypt-server:jar:*,org.fusesource.jansi:jansi:jar:*,ch.qos.logback:logback-classic:jar:*,
                                     org.slf4j:slf4j-api:jar:*,org.apache.maven:maven-compat:*,org.apache.maven.resolver:maven-resolver-connector-basic,
                                     org.apache.maven.resolver:maven-resolver-transport-wagon,org.apache.maven.wagon:wagon-http-lightweight:*
-                                </ignoredDependencies>
+                                    </ignoredDependencies>
                             </configuration>
                         </execution>
                     </executions>
@@ -229,6 +242,18 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-enforcer-plugin</artifactId>
                     <version>3.6.1</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.maven</groupId>
+                            <artifactId>maven-plugin-api</artifactId>
+                            <version>3.9.11</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.apache.maven</groupId>
+                            <artifactId>maven-core</artifactId>
+                            <version>3.9.11</version>
+                        </dependency>
+                    </dependencies>
                     <executions>
                         <execution>
                             <id>enforce-versions</id>
@@ -247,7 +272,7 @@
                                     </requireMavenVersion>
                                     <requireJavaVersion>
                                         <version>[${java.version},)</version>
-                                        <message>Invalid Java version. It should, at least, be 25</message>
+                                        <message>Invalid Java version. It should, at least, be 24</message>
                                     </requireJavaVersion>
                                 </rules>
                             </configuration>
@@ -327,10 +352,6 @@
         </pluginManagement>
 
         <plugins>
-            <!-- <plugin>
-                <groupId>org.glassfish.hk2</groupId>
-                <artifactId>hk2-inhabitant-generator</artifactId>
-            </plugin> -->
             <!-- Maven plugins -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
