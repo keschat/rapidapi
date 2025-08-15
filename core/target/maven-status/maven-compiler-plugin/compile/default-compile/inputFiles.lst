@@ -1,4 +1,13 @@
 /home/kesi/workspace/java/yt/apiburn/rapidapi/core/src/main/java/com/rapidapi/core/Application.java
+/home/kesi/workspace/java/yt/apiburn/rapidapi/core/src/main/java/com/rapidapi/core/config/ApplicationConfig.java
+/home/kesi/workspace/java/yt/apiburn/rapidapi/core/src/main/java/com/rapidapi/core/config/ApplicationConfigKey.java
 /home/kesi/workspace/java/yt/apiburn/rapidapi/core/src/main/java/com/rapidapi/core/config/ConfigProvider.java
-/home/kesi/workspace/java/yt/apiburn/rapidapi/core/src/main/java/com/rapidapi/core/config/DIConfig.java
+/home/kesi/workspace/java/yt/apiburn/rapidapi/core/src/main/java/com/rapidapi/core/config/CryptoConfig.java
+/home/kesi/workspace/java/yt/apiburn/rapidapi/core/src/main/java/com/rapidapi/core/config/JwtConfig.java
+/home/kesi/workspace/java/yt/apiburn/rapidapi/core/src/main/java/com/rapidapi/core/config/SSLConfig.java
+/home/kesi/workspace/java/yt/apiburn/rapidapi/core/src/main/java/com/rapidapi/core/config/SSLConfigKey.java
+/home/kesi/workspace/java/yt/apiburn/rapidapi/core/src/main/java/com/rapidapi/core/config/SecurityConfig.java
+/home/kesi/workspace/java/yt/apiburn/rapidapi/core/src/main/java/com/rapidapi/core/config/SecurityConfigKey.java
+/home/kesi/workspace/java/yt/apiburn/rapidapi/core/src/main/java/com/rapidapi/core/config/ServerConfig.java
+/home/kesi/workspace/java/yt/apiburn/rapidapi/core/src/main/java/com/rapidapi/core/config/ServerConfigKey.java
 /home/kesi/workspace/java/yt/apiburn/rapidapi/core/src/main/java/com/rapidapi/core/http/JettyServer.java

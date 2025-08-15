@@ -1,10 +1,29 @@
 # Development overrides - inherits from application.yml
 server:
-  port: 9090
+  http-port: 8080
+  https-port: 8443
+  context-path: /
+  api-path: /api/*
+  static-resource-path: static
+  welcome-files: index.html,home.html
+  idle-timeout: 30000
+  stop-timeout: 10000
   ssl:
-    port: 8443
-    keystore: keystore.p12
-    password: pass123
+    keystore:
+      path: keystore.p12
+      password: pass123
+      manager-password: pass123
+
+security:
+  jwt:
+    secret: devsecret123
+    algorithm: HS256
+    expiration-minutes: 15
+    verification-url: https://rapidapi.com/rapidapi/api/rapidapi-demo
+  crypto:
+    secret: devsecret123
+    algorithm: AES
+  crypto-provider: conscrypt
 
 database:
   url: jdbc:h2:mem:devdb
@@ -15,5 +34,7 @@ logging:
   level: DEBUG
 
 app:
-  name: "RapidApi Demo App (DEV)"
+  name: "RapidApi Demo App"
+  version: "1.0.0-SNAPSHOT"
   description: "Development environment for RapidApi App"
+  environment: "development"

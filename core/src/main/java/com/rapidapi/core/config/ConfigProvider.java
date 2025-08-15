@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
+
+// @Singleton
 public class ConfigProvider {
     
     private static final Logger logger = LoggerFactory.getLogger(ConfigProvider.class);
