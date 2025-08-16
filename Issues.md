@@ -104,15 +104,11 @@ apiContext.setBaseResource(apiContext.newResource(Main.class.getClassLoader().ge
 
 This change uses the class loader to properly resolve the www resource directory, which eliminates the aliasing warning by using the correct resource URL instead of a file path that Jetty interprets as potentially aliased.
 
-
------
-
+-------------------------
 
 When using WebAppContext, the base resource is often automatically derived from the setWar parameter, as it typically points to a WAR file or a directory containing the web application's content. However, for ServletContextHandler or ResourceHandler, you need to explicitly set the base resource to enable serving static files.
 
-
-
-------
+-------------------------
 
 [04:31:30.819] [WARN ] [qtp2013901650-55] o.e.j.ee10.servlet.ServletChannel - /api
 java.lang.NoClassDefFoundError: org/glassfish/jersey/innate/inject/InternalBinder
@@ -120,8 +116,7 @@ java.lang.NoClassDefFoundError: org/glassfish/jersey/innate/inject/InternalBinde
 Context
 The issue is a version mismatch between Jersey versions. You have Jersey 4.0.0-M2 in some places and 3.1.11 in others. The InternalBinder class location changed between versions. Let me fix this by making all Jersey dependencies use the same version:
 
-
-------
+-------------------------
 
 WARNING: A class jakarta.activation.DataSource for a default provider MessageBodyWriter<jakarta.activation.DataSource> was not found. The provider is not available.
 Aug 12, 2025 4:33:08 AM org.glassfish.jersey.server.wadl.WadlFeature configure
@@ -152,8 +147,7 @@ jakarta.xml.bind-api: Enables WADL feature support
 
 The warnings were appearing because Jersey was looking for these optional features but couldn't find the required classes on the classpath.
 
-
-------
+-------------------------
 
 WARNING: JAXBContext implementation could not be found. WADL feature is disabled.
 
@@ -195,3 +189,38 @@ If WADL functionality is not required, the warning can be suppressed by explicit
 
 This prevents Jersey from attempting to use JAXB for WADL generation, thus eliminating the warning.
 The choice between these solutions depends on whether WADL is a necessary feature for the application. If not, disabling it is the simpler approach. If WADL is required, adding the JAXB dependencies is necessary.
+
+-------------------------
+
+// Set Conscrypt as the first provider.
+Security.insertProviderAt(new OpenSSLProvider(), 1);
+
+// Or, add Conscrypt and configure it.
+Security.addProvider(new OpenSSLProvider());
+sslContextFactory.setProvider("Conscrypt");
+
+-------------------------
+
+mvn -U clean install
+(where -U will force update the repo)
+
+or use
+
+<profiles>
+    <profile>
+      ...
+      <repositories>
+        <repository>
+          <id>myRepo</id>
+          <name>My Repository</name>
+          <releases>
+            <enabled>false</enabled>
+            <updatePolicy>always</updatePolicy>
+            <checksumPolicy>warn</checksumPolicy>
+          </releases>
+         </repository>
+      </repositories>
+      ...
+    </profile>
+  </profiles>
+in your settings.xml

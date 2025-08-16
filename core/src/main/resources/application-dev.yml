@@ -10,7 +10,7 @@ server:
   stop-timeout: 10000
   ssl:
     keystore:
-      path: keystore.p12
+      path: ssl/keystore.p12
       password: pass123
       manager-password: pass123
 
@@ -30,6 +30,17 @@ database:
   username: dev
   password: dev123
 
+datasource:
+  url: jdbc:h2:mem:devdb
+  username: dev
+  password: dev123
+  pool:
+    type: HIKARI
+    max-size: 10
+    min-size: 2
+    connection-timeout: 30000
+    idle-timeout: 600000
+
 logging:
   level: DEBUG
 
@@ -38,3 +49,29 @@ app:
   version: "1.0.0-SNAPSHOT"
   description: "Development environment for RapidApi App"
   environment: "development"
+
+business:
+  products:
+    max-per-page: 20
+    validation-enabled: true
+    max-price: 5000.00
+    default-currency: USD
+
+api:
+  version: v1
+  rate-limit:
+    per-minute: 60
+  request:
+    max-size-mb: 5
+  cors:
+    enabled: true
+    allowed-origins: "http://localhost:3000,http://localhost:8080"
+
+template:
+  prefix: templates/
+  suffix: .html
+  mode: HTML5
+  cacheable: false
+  encoding: UTF-8
+  cache:
+    ttl-ms: 3600000

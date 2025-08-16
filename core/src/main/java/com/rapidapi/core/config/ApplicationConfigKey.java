@@ -1,5 +1,7 @@
 package com.rapidapi.core.config;
 
+import com.rapidapi.core.infrastructure.config.ConfigProvider;
+
 public enum ApplicationConfigKey {
 
     NAME("app.name"),

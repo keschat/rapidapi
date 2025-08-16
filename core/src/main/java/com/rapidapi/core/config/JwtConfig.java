@@ -3,6 +3,8 @@ package com.rapidapi.core.config;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
+import com.rapidapi.core.infrastructure.config.ConfigProvider;
+
 @Singleton
 public class JwtConfig {
     

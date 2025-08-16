@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title}">Product Management</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 th:text="${title}">Product Management</h1>
+            <a th:href="@{/domains/product/new}" class="btn btn-primary">Add New Product</a>
+        </header>
+        
+        <!-- Flash Messages -->
+        <div th:if="${flash.hasMessages()}" class="flash-messages">
+            <div th:each="message : ${flash.messages}" 
+                 th:class="'alert alert-' + ${message.type}"
+                 th:text="${message.message}">
+                Flash message here
+            </div>
+        </div>
+        
+        <main>
+            <div class="products-grid">
+                <div th:each="product : ${products}" class="product-card">
+                    <h3 th:text="${product.name}">Product Name</h3>
+                    <p class="price" th:text="'$' + ${product.price}">$0.00</p>
+                    <div class="actions">
+                        <a th:href="@{'/domains/product/' + ${product.id}}" class="btn btn-info">View</a>
+                        <a th:href="@{'/domains/product/' + ${product.id} + '/edit'}" class="btn btn-warning">Edit</a>
+                        <form th:action="@{'/domains/product/' + ${product.id} + '/delete'}" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-danger" 
+                                    onclick="return confirm('Are you sure?')">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div th:if="${#lists.isEmpty(products)}" class="empty-state">
+                <p>No products found. <a th:href="@{/domains/product/new}">Add the first product</a></p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
