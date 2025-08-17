@@ -3,12 +3,12 @@ package com.rapidapi.core.infrastructure.server;
 import java.net.URL;
 import java.security.Security;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.conscrypt.OpenSSLProvider;
+
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
 import org.eclipse.jetty.ee11.servlet.DefaultServlet;
 import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee11.servlet.ServletHolder;
+import org.eclipse.jetty.ee11.servlet.SessionHandler;
 import org.eclipse.jetty.http.UriCompliance;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.server.Connector;
@@ -26,14 +26,22 @@ import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.glassfish.jersey.servlet.ServletContainer;
-import org.jboss.weld.environment.se.WeldContainer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 import com.rapidapi.core.config.ApplicationConfig;
 import com.rapidapi.core.config.SSLConfig;
 import com.rapidapi.core.config.SecurityConfig;
 import com.rapidapi.core.config.ServerConfig;
+import com.rapidapi.core.config.JwtConfig;
+import com.rapidapi.core.config.CryptoConfig;
+import com.rapidapi.core.config.TemplateConfig;
+import com.rapidapi.core.infrastructure.config.ConfigProvider;
+import com.rapidapi.core.infrastructure.loader.TemplateEngineFactory;
+
+
 
 /**
  * Jetty 12 embedded server with: - HTTP -> HTTPS automatic redirect for ALL
@@ -47,43 +55,27 @@ public class JettyServer {
     // === Jetty Server ===
     private Server server;
     private QueuedThreadPool threadPool;
-    private final WeldContainer container;
 
-    public JettyServer(WeldContainer container) {
-        this.container = container;
+    public JettyServer() {
         threadPool = new QueuedThreadPool();
         threadPool.setName("server");
         server = new Server(threadPool);
     }
 
     public void start() throws Exception {
-        // === Load configurations ===
-        var securityConfig = container.select(SecurityConfig.class).get();
-        var serverConfig = container.select(ServerConfig.class).get();
-        var appConfig = container.select(ApplicationConfig.class).get();
-        var sslConfig = container.select(SSLConfig.class).get();
+        // === Load configurations manually ===
+        var configProvider = new ConfigProvider();
+        var jwtConfig = new JwtConfig(configProvider);
+        var cryptoConfig = new CryptoConfig(configProvider);
+        var securityConfig = new SecurityConfig(jwtConfig, cryptoConfig);
+        var serverConfig = new ServerConfig(configProvider);
+        var appConfig = new ApplicationConfig(configProvider);
+        var sslConfig = new SSLConfig(configProvider);
         logger.info("Configurations loaded successfully");
 
         logger.info("Starting {} {} ({})", appConfig.getName(), appConfig.getVersion(), appConfig.getEnvironment());
 
-        if (securityConfig.getCrypto().getCryptoProvider() == "conscrypt") {
-            try {
-                Security.insertProviderAt(new OpenSSLProvider(), 1);
-                logger.info("Conscrypt OpenSSL provider installed");
-            } catch (Throwable t) {
-                logger.warn("Conscrypt not available; falling back to default JSSE: {}", t.toString());
-            }
-        } else if (securityConfig.getCrypto().getCryptoProvider() == "bouncy-castle") {
-            logger.info("Using Bouncy Castle provider...");
-            try {
-                Security.addProvider(new BouncyCastleProvider());
-                logger.info("BouncyCastle provider installed");
-            } catch (Throwable t) {
-                logger.warn("BouncyCastle not available: {}", t.toString());
-            }
-        } else {
-            logger.info("No security provider specified. Using default JSSE...");
-        }
+        // Security providers will be configured by servlet context listener
 
         // Graceful shutdown of in-flight requests
         // Graceful shutdown is handled via server.setStopTimeout() + shutdown hook
@@ -110,41 +102,26 @@ public class JettyServer {
 
         // ---- SSL Context ----
         SslContextFactory.Server ssl = new SslContextFactory.Server();
-
+        
         // Load keystore from classpath if path is classpath-relative
         URL ksUrl = getResourceFromClasspath(sslConfig.getKeystorePath());
         ssl.setKeyStorePath(ksUrl != null ? ksUrl.toString() : sslConfig.getKeystorePath());
         ssl.setKeyStorePassword(sslConfig.getKeystorePassword());
         ssl.setKeyManagerPassword(sslConfig.getKeyManagerPassword());
-
-        // CAUTION: trustAll is for development only
-        // ssl.setTrustAll(Boolean.TRUE.equals(sslConfig.isTrustAll()));
-        // Development settings - remove in production
-        // ssl.setEndpointIdentificationAlgorithm(null);
-
-        // Use OpenSSL provider since we're using OpenSSLProvider
-        // Optional: prefer Conscrypt if installed
-        switch (securityConfig.getCrypto().getCryptoProvider()) {
-        case "conscrypt" -> ssl.setProvider("Conscrypt");
-        case "bouncy-castle" -> ssl.setProvider("BC");
-        default -> ssl.setProvider("JSSE");
-        }
-
+        
         // ALPN + HTTP/2 over TLS
         ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory();
         alpn.setDefaultProtocol("h2");
-
-        // Build connectors
+        
         // HTTPS (8443): ssl -> alpn -> http/1.1 (HTTP/2 will be negotiated by ALPN)
         ServerConnector https = new ServerConnector(server, new SslConnectionFactory(ssl, alpn.getProtocol()), alpn,
                 new HttpConnectionFactory(httpsConfig));
         https.setName("HTTPS");
         https.setPort(serverConfig.getHttpsPort());
         https.setIdleTimeout(serverConfig.getIdleTimeout());
-
-        // HTTP (8080) plain: only used to redirect to HTTPS
-        ServerConnector http = new ServerConnector(server, new HttpConnectionFactory(httpConfig),
-                new HTTP2CServerConnectionFactory(httpConfig));
+        
+        // HTTP (8080) plain: redirects to HTTPS
+        ServerConnector http = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
         http.setName("HTTP");
         http.setPort(serverConfig.getHttpPort());
         http.setIdleTimeout(serverConfig.getIdleTimeout());
@@ -154,42 +131,47 @@ public class JettyServer {
         // ---- App Handlers ----
         // 1) All insecure requests are redirected to HTTPS
         SecuredRedirectHandler redirectAll = new SecuredRedirectHandler();
-
+        
         // 2) Your webapp context (static + Jersey) with session support
         ServletContextHandler app = new ServletContextHandler(ServletContextHandler.SESSIONS);
         app.setContextPath(serverConfig.getContextPath());
         
         // Configure session management
         SessionHandler sessionHandler = new SessionHandler();
-        sessionHandler.setMaxInactiveInterval(serverConfig.getIdleTimeout() / 1000); // Convert to seconds
+        sessionHandler.setMaxInactiveInterval(serverConfig.getIdleTimeout() / 1000);
         app.setSessionHandler(sessionHandler);
 
         // CDI is initialized manually in Bootstrap, no need for servlet listener
 
         // Static resources (optional)
-        app.addServlet(DefaultServlet.class, serverConfig.getContextPath());
+        app.addServlet(DefaultServlet.class, "/static/*");
 
-        // Set base resource for static files
-        URL staticResource = getResourceFromClasspath(serverConfig.getStaticResourcePath());
-        if (staticResource != null) {
-            app.setBaseResource(app.newResource(staticResource));
-            app.setWelcomeFiles(serverConfig.getWelcomeFiles());
-        }
-
-        // Jersey REST under /api/*
-        ServletHolder jersey = app.addServlet(ServletContainer.class, serverConfig.getApiPath());
+        // Jersey REST + MVC under /api/* and /domains/*
+        ServletHolder jersey = app.addServlet(ServletContainer.class, "/*");
         jersey.setInitOrder(0);
-        jersey.setInitParameter("jersey.config.server.provider.packages", "com.rapidapi.apps");
+        
+        String packageScan = "com.rapidapi.core,com.rapidapi.domains";
+        logger.info("Jersey scanning packages: {}", packageScan);
+        jersey.setInitParameter("jersey.config.server.provider.packages", packageScan);
         jersey.setInitParameter("jersey.config.servlet.filter.forwardOn404", "true");
-        // Enable Jackson as JSON provider
-        jersey.setInitParameter("jersey.config.server.provider.classnames",
-                "org.glassfish.jersey.media.json.JsonJacksonFeature");
-        // Suppress class file version warnings for Java 25
+        jersey.setInitParameter("jersey.config.server.tracing.type", "ALL");
+        jersey.setInitParameter("jersey.config.server.tracing.threshold", "VERBOSE");
+        
+        // Enable Jakarta MVC with Krazo - configurable template engine
+        var templateConfig = new TemplateConfig(configProvider);
+        var templateFactory = new TemplateEngineFactory(templateConfig);
+        String[] providers = templateFactory.getRequiredProviders();
+        String providerList = String.join(",", providers);
+        logger.info("Jersey providers: {}", providerList);
+        jersey.setInitParameter("jersey.config.server.provider.classnames", providerList);
+        
+        // MVC Configuration
+        jersey.setInitParameter("jakarta.mvc.engine.ViewEngine.viewFolder", "/templates/");
         jersey.setInitParameter("jersey.config.server.wadl.disableWadl", "true");
 
         ContextHandlerCollection contexts = new ContextHandlerCollection();
         contexts.addHandler(app);
-
+        
         // Compose handler chain: redirect first, then app contexts
         Handler.Sequence chain = new Handler.Sequence();
         chain.setHandlers(new Handler[] { redirectAll, contexts });
@@ -199,14 +181,14 @@ public class JettyServer {
         statisticsHandler.setServer(server);
 
         // Optionally add a JVM shutdown hook to call server.stop() explicitly
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            logger.info("JVM shutdown hook: stopping Jetty...");
-            try {
-                server.stop();
-            } catch (Exception e) {
-                logger.warn("Error while stopping Jetty", e);
-            }
-        }, "jetty-shutdown"));
+        // Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        //     logger.info("JVM shutdown hook: stopping Jetty...");
+        //     try {
+        //         server.stop();
+        //     } catch (Exception e) {
+        //         logger.warn("Error while stopping Jetty", e);
+        //     }
+        // }, "jetty-shutdown"));
 
         // Add graceful shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -218,7 +200,7 @@ public class JettyServer {
             } catch (Exception e) {
                 logger.error("Error during graceful shutdown", e);
             }
-        }));
+        }, "jetty-graceful-shutdown"));
 
         try {
             server.start();

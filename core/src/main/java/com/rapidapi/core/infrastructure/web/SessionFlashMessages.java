@@ -3,8 +3,6 @@ package com.rapidapi.core.infrastructure.web;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -22,22 +20,22 @@ public class SessionFlashMessages {
     private HttpServletRequest request;
     
     public void addSuccess(String message) {
-        addMessage("success", message);
+        addMessage(message, MessageType.SUCCESS);
     }
     
     public void addError(String message) {
-        addMessage("error", message);
+        addMessage(message, MessageType.ERROR);
     }
     
     public void addInfo(String message) {
-        addMessage("info", message);
+        addMessage(message, MessageType.INFO);
     }
     
     public void addWarning(String message) {
-        addMessage("warning", message);
+        addMessage(message, MessageType.WARNING);
     }
     
-    private void addMessage(String type, String message) {
+    private void addMessage(String message, MessageType type) {
         HttpSession session = request.getSession(true);
         @SuppressWarnings("unchecked")
         List<FlashMessage> messages = (List<FlashMessage>) session.getAttribute(FLASH_MESSAGES_KEY);
@@ -47,7 +45,7 @@ public class SessionFlashMessages {
             session.setAttribute(FLASH_MESSAGES_KEY, messages);
         }
         
-        messages.add(new FlashMessage(type, message));
+        messages.add(new FlashMessage(message, type));
     }
     
     public List<FlashMessage> getMessages() {
@@ -79,19 +77,5 @@ public class SessionFlashMessages {
         return messages != null && !messages.isEmpty();
     }
     
-    public static class FlashMessage implements Serializable {
-        private final String type;
-        private final String message;
-        private final long timestamp;
-        
-        public FlashMessage(String type, String message) {
-            this.type = type;
-            this.message = message;
-            this.timestamp = System.currentTimeMillis();
-        }
-        
-        public String getType() { return type; }
-        public String getMessage() { return message; }
-        public long getTimestamp() { return timestamp; }
-    }
+    // FlashMessage record is now in separate file
 }

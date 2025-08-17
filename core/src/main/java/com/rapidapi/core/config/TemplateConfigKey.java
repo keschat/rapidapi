@@ -4,6 +4,7 @@ import com.rapidapi.core.infrastructure.config.ConfigProvider;
 
 public enum TemplateConfigKey {
 
+    ENGINE("template.engine"),
     PREFIX("template.prefix"),
     SUFFIX("template.suffix"),
     MODE("template.mode"),

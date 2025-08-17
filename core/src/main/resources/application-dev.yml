@@ -68,8 +68,9 @@ api:
     allowed-origins: "http://localhost:3000,http://localhost:8080"
 
 template:
+  engine: freemarker          # freemarker or thymeleaf
   prefix: templates/
-  suffix: .html
+  suffix:                     # Auto-detected: .ftl for freemarker, .html for thymeleaf
   mode: HTML5
   cacheable: false
   encoding: UTF-8

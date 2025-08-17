@@ -2,17 +2,20 @@ package com.rapidapi.domains.product.presentation.web;
 
 import java.util.List;
 
-import java.util.Map;
-import java.util.HashMap;
-
 import com.rapidapi.domains.product.application.service.ProductService;
 import com.rapidapi.domains.product.domain.model.Product;
-import com.rapidapi.core.infrastructure.web.FlashMessageService;
+import com.rapidapi.core.infrastructure.web.SessionFlashMessages;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import jakarta.mvc.Controller;
+import jakarta.mvc.Models;
+import jakarta.mvc.View;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
-@Singleton
+@Controller
+@Path("/product")
 public class ProductController {
     
     // Using your existing Thymeleaf infrastructure from shared-kernel
@@ -21,52 +24,71 @@ public class ProductController {
     private ProductService productService;
     
     @Inject
-    private FlashMessageService flash;
+    private SessionFlashMessages flash;
+    
+    @Inject
+    private Models models;
 
-    @GetMapping
-    public String listProducts() {
+    @GET
+    @View("product/list.ftl")
+    public void listProducts() {
         List<Product> products = productService.findAll();
-        Map<String, Object> model = new HashMap<>();
-        model.put("products", products);
-        model.put("title", "Product Management");
-        return renderTemplate("product/list", model);
+        models.put("products", products);
+        models.put("title", "Product Management");
     }
 
-    @GetMapping("/new")
-    public String newProductForm() {
-        Map<String, Object> model = new HashMap<>();
-        model.put("product", new Product(0L, "", 0.0));
-        model.put("title", "Add New Product");
-        return renderTemplate("product/form", model);
+    @GET
+    @Path("/new")
+    @View("product/form.ftl")
+    public void newProductForm() {
+        models.put("product", new Product(0L, "", 0.0));
+        models.put("title", "Add New Product");
     }
 
-    @GetMapping("/{id}")
-    public String viewProduct(Long id) {
+    @GET
+    @Path("/{id}")
+    @View("product/view.ftl")
+    public Response viewProduct(@PathParam("id") Long id) {
         return productService.find(id)
             .map(product -> {
-                Map<String, Object> model = new HashMap<>();
-                model.put("product", product);
-                model.put("title", "Product Details");
-                return renderTemplate("product/view", model);
+                models.put("product", product);
+                models.put("title", "Product Details");
+                return Response.ok().build();
             })
-            .orElse("redirect:/domains/product?error=notfound");
+            .orElseGet(() -> {
+                flash.addError("Product not found");
+                return Response.status(Response.Status.SEE_OTHER)
+                    .location(java.net.URI.create("/domains/product"))
+                    .build();
+            });
     }
 
-    @GetMapping("/{id}/edit")
-    public String editProductForm(Long id) {
+    @GET
+    @Path("/{id}/edit")
+    @View("product/form.ftl")
+    public Response editProductForm(@PathParam("id") Long id) {
         return productService.find(id)
             .map(product -> {
-                Map<String, Object> model = new HashMap<>();
-                model.put("product", product);
-                model.put("title", "Edit Product");
-                return renderTemplate("product/form", model);
+                models.put("product", product);
+                models.put("title", "Edit Product");
+                return Response.ok().build();
             })
-            .orElse("redirect:/domains/product?error=notfound");
+            .orElseGet(() -> {
+                flash.addError("Product not found");
+                return Response.status(Response.Status.SEE_OTHER)
+                    .location(java.net.URI.create("/domains/product"))
+                    .build();
+            });
     }
 
-    @PostMapping
-    public String saveProduct(Product product) {
+    @POST
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response saveProduct(@FormParam("id") Long id,
+                               @FormParam("name") String name,
+                               @FormParam("price") Double price) {
         try {
+            Product product = new Product(id != null ? id : 0L, name, price);
+            
             if (product.id() == 0) {
                 productService.save(product);
                 flash.addSuccess("Product created successfully");
@@ -74,15 +96,21 @@ public class ProductController {
                 productService.update(product.id(), product);
                 flash.addSuccess("Product updated successfully");
             }
-            return "redirect:/domains/product";
+            
+            return Response.status(Response.Status.SEE_OTHER)
+                .location(java.net.URI.create("/domains/product"))
+                .build();
         } catch (Exception e) {
             flash.addError("Failed to save product: " + e.getMessage());
-            return "redirect:/domains/product/new";
+            return Response.status(Response.Status.SEE_OTHER)
+                .location(java.net.URI.create("/domains/product/new"))
+                .build();
         }
     }
 
-    @PostMapping("/{id}/delete")
-    public String deleteProduct(Long id) {
+    @POST
+    @Path("/{id}/delete")
+    public Response deleteProduct(@PathParam("id") Long id) {
         try {
             if (productService.delete(id)) {
                 flash.addSuccess("Product deleted successfully");
@@ -92,12 +120,9 @@ public class ProductController {
         } catch (Exception e) {
             flash.addError("Failed to delete product: " + e.getMessage());
         }
-        return "redirect:/domains/product";
-    }
-    
-    private String renderTemplate(String templateName, Map<String, Object> model) {
-        // Use your existing TemplateLoader from shared-kernel
-        // This will be integrated with your Jetty server's template handling
-        return templateName; // Placeholder - integrate with your template system
+        
+        return Response.status(Response.Status.SEE_OTHER)
+            .location(java.net.URI.create("/domains/product"))
+            .build();
     }
 }

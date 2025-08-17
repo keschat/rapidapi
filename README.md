@@ -313,3 +313,59 @@ Your POS Architecture:
 │           ├── rest/      # JSON APIs (Vue.js)
 │           └── web/       # Thymeleaf (Dashboard)
 └── pos-app/              # POS Application with dashboard
+
+
+
+    // Example for embedded Jetty
+    Server server = new Server(8080); // Port
+    WebAppContext webAppContext = new WebAppContext();
+    webAppContext.setContextPath("/your-app"); // Context path
+    webAppContext.setWar("path/to/your/app.war"); // Path to your WAR file
+    server.setHandler(webAppContext);
+    server.start();
+    server.join();
+
+
+✅ New Flash Message Architecture:
+1. MessageType Enum (Type Safety):
+
+public enum MessageType {
+    SUCCESS("success"),
+    ERROR("error"), 
+    WARNING("warning"),
+    INFO("info");
+}
+
+
+2. FlashMessage Record (Modern Java):
+
+public record FlashMessage(
+    String message, 
+    MessageType type,
+    LocalDateTime timestamp
+) implements Serializable {
+    
+    public FlashMessage(String message, MessageType type) {
+        this(message, type, LocalDateTime.now());
+    }
+}
+
+
+3. Usage in Controllers:
+
+// Type-safe flash messages
+flash.addSuccess("Product created successfully");
+flash.addError("Product not found");
+flash.addWarning("Low inventory");
+flash.addInfo("Shift ends in 30 minutes");
+
+
+4. FreeMarker Template Usage:
+
+<#if flash.hasMessages()>
+    <#list flash.messages as message>
+        <div class="alert alert-${message.type}">
+            ${message.message}
+        </div>
+    </#list>
+</#if>

@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.rapidapi.core.infrastructure.cdi.CdiInitializer;
+
 import com.rapidapi.core.infrastructure.config.DatabaseConfig;
 import com.rapidapi.core.infrastructure.server.JettyServer;
 import com.rapidapi.core.infrastructure.validation.CheckRequirements;
@@ -21,12 +21,8 @@ public class Bootstrap {
     JettyServer httpServer;
 
     public Bootstrap() throws ClassNotFoundException, SQLException {
-        // Default constructor
         dbConn = DatabaseConfig.getConnection();
-        
-        var cdiInitializer = new CdiInitializer();
-        cdiInitializer.initialize();
-        httpServer = new JettyServer(cdiInitializer.getContainer());
+        httpServer = new JettyServer();
     }
 
     public void initialize() throws SQLException {
