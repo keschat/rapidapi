@@ -1,7 +1,5 @@
 package com.rapidapi.core.config;
 
-import com.rapidapi.core.infrastructure.config.ConfigProvider;
-
 public enum SSLConfigKey {
 
     SSL_PORT("server.ssl.port"),
