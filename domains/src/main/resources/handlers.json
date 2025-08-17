@@ -1,8 +1,0 @@
-{
-  "handlers": [
-    {
-      "path": "/products",
-      "handler": "com.rapidapi.apps.product.ProductHandler"
-    }
-  ]
-}

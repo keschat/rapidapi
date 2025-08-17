@@ -16,7 +16,7 @@
         <maven.compiler.target>25</maven.compiler.target>
         <maven.version>3.9.11</maven.version>
         <java.version>25</java.version>
-        <jetty.version>12.1.0.beta3</jetty.version>
+        <jetty.version>12.1.0.beta2</jetty.version>
         <jersey.version>4.0.0-M2</jersey.version>
         <weld.version>6.0.3.Final</weld.version>
         <mavenVersion>3.9.11</mavenVersion>
@@ -24,7 +24,7 @@
 
     <modules>
         <module>core</module>
-        <module>domains</module>
+        <module>rest</module>
     </modules>
 
     <repositories>
@@ -43,45 +43,18 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- Dependency convergence error -->
-            <dependency>
-                <groupId>org.javassist</groupId>
-                <artifactId>javassist</artifactId>
-                <version>3.30.2-GA</version>
-            </dependency>
-            <!-- Database dependencies -->
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-dbcp2</artifactId>
-                <version>2.13.0</version>
-            </dependency>
-            <dependency>
-                <groupId>com.zaxxer</groupId>
-                <artifactId>HikariCP</artifactId>
-                <version>7.0.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.vibur</groupId>
-                <artifactId>vibur-dbcp</artifactId>
-                <version>26.0</version>
-            </dependency>
-            <dependency>
-                <groupId>com.mysql</groupId>
-                <artifactId>mysql-connector-j</artifactId>
-                <version>9.4.0</version>
-            </dependency>
-            <!-- Security dependencies -->
             <dependency>
                 <groupId>org.conscrypt</groupId>
                 <artifactId>conscrypt-openjdk-uber</artifactId>
                 <version>2.5.2</version>
             </dependency>
-            <!-- Jakarta dependencies -->
+            <!-- Jetty dependencies -->
             <dependency>
-                <groupId>jakarta.annotation</groupId>
-                <artifactId>jakarta.annotation-api</artifactId>
-                <version>3.0.0</version>
+                <groupId>org.eclipse.jetty.ee11</groupId>
+                <artifactId>jetty-ee11-servlet</artifactId>
+                <version>12.1.0.beta2</version>
             </dependency>
+            <!-- Jakarta dependencies -->
             <dependency>
                 <groupId>jakarta.el</groupId>
                 <artifactId>jakarta.el-api</artifactId>
@@ -92,40 +65,24 @@
                 <artifactId>jakarta.enterprise.cdi-api</artifactId>
                 <version>4.1.0</version>
             </dependency>
-            <!-- Jakarta Servlet API dependencies -->
             <dependency>
                 <groupId>jakarta.servlet</groupId>
                 <artifactId>jakarta.servlet-api</artifactId>
                 <version>6.1.0</version>
                 <scope>provided</scope>
             </dependency>
-            <!-- Bean Validation dependencies -->
-            <dependency>
-                <groupId>jakarta.validation</groupId>
-                <artifactId>jakarta.validation-api</artifactId>
-                <version>3.1.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hibernate.validator</groupId>
-                <artifactId>hibernate-validator</artifactId>
-                <version>9.0.1.Final</version>
-            </dependency>
-            <!-- JAX-RS dependencies -->
             <dependency>
                 <groupId>jakarta.ws.rs</groupId>
                 <artifactId>jakarta.ws.rs-api</artifactId>
                 <version>4.0.0</version>
             </dependency>
-            <!-- Jetty dependencies -->
+            <!-- Jetty -->
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-server</artifactId>
+                <artifactId>jetty-bom</artifactId>
                 <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-util</artifactId>
-                <version>${jetty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
@@ -133,83 +90,40 @@
                 <version>${jetty.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.eclipse.jetty.http2</groupId>
-                <artifactId>jetty-http2-server</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.eclipse.jetty.ee11</groupId>
-                <artifactId>jetty-ee11-cdi</artifactId>
+                <artifactId>jetty-ee11-bom</artifactId>
                 <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty.ee11</groupId>
-                <artifactId>jetty-ee11-servlet</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-alpn-server</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-alpn-conscrypt-server</artifactId>
-                <version>${jetty.version}</version>
+                <type>pom</type>
             </dependency>
             <!-- Jersy dependencies -->
             <dependency>
-                <groupId>org.glassfish.jersey.core</groupId>
-                <artifactId>jersey-server</artifactId>
+                <groupId>org.glassfish.jersey</groupId>
+                <artifactId>jersey-bom</artifactId>
                 <version>${jersey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.containers</groupId>
-                <artifactId>jersey-container-servlet</artifactId>
-                <version>${jersey.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.jersey.containers</groupId>
                 <artifactId>jersey-container-servlet-core</artifactId>
                 <version>${jersey.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.media</groupId>
-                <artifactId>jersey-media-json-jackson</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.inject</groupId>
-                <artifactId>jersey-hk2</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.core</groupId>
-                <artifactId>jersey-common</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.ext</groupId>
-                <artifactId>jersey-bean-validation</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.ext.cdi</groupId>
-                <artifactId>jersey-cdi1x-servlet</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
+            <!-- CDI dependencies -->
             <dependency>
                 <groupId>org.glassfish.jersey.inject</groupId>
                 <artifactId>jersey-cdi2-se</artifactId>
                 <version>${jersey.version}</version>
             </dependency>
-            <!-- CDI dependencies for Servlet containers -->
             <dependency>
-                <groupId>org.jboss.weld.servlet</groupId>
-                <artifactId>weld-servlet-core</artifactId>
+                <groupId>org.jboss.weld</groupId>
+                <artifactId>weld-api</artifactId>
+                <version>6.0.Final</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.weld.se</groupId>
+                <artifactId>weld-se-core</artifactId>
                 <version>${weld.version}</version>
             </dependency>
-            <!-- JAXB dependencies -->
             <dependency>
                 <groupId>org.glassfish.jaxb</groupId>
                 <artifactId>jaxb-runtime</artifactId>
@@ -222,11 +136,11 @@
                 <version>1.81</version>
             </dependency>
             <!--  Apache commons dependencies -->
-            <!-- <dependency>
+            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>3.18.0</version>
-            </dependency> -->
+            </dependency>
             <!--  Logging dependencies -->
             <dependency>
                 <groupId>org.jboss.logging</groupId>
@@ -264,44 +178,12 @@
                 <artifactId>jackson-databind</artifactId>
                 <version>2.19.2</version>
             </dependency>
-            <!-- Jakarta MVC Implementation (e.g., Krazo) -->
             <dependency>
-                <groupId>jakarta.mvc</groupId>
-                <artifactId>jakarta.mvc-api</artifactId>
-                <version>3.0.0</version>
+                <groupId>org.glassfish.jersey.media</groupId>
+                <artifactId>jersey-media-json-jackson</artifactId>
+                <version>${jersey.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.eclipse.krazo</groupId>
-                <artifactId>krazo-core</artifactId>
-                <version>4.0.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.krazo</groupId>
-                <artifactId>krazo-jersey</artifactId>
-                <version>4.0.1</version>
-            </dependency>
-            <!-- Template Engines - Both available, configured via YAML -->
-            <dependency>
-                <groupId>org.eclipse.krazo</groupId>
-                <artifactId>krazo-freemarker</artifactId>
-                <version>4.0.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.krazo</groupId>
-                <artifactId>krazo-thymeleaf</artifactId>
-                <version>4.0.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.freemarker</groupId>
-                <artifactId>freemarker</artifactId>
-                <version>2.3.33</version>
-            </dependency>
-            <dependency>
-                <groupId>org.thymeleaf</groupId>
-                <artifactId>thymeleaf</artifactId>
-                <version>3.1.3.RELEASE</version>
-            </dependency>
-            <!-- Yaml dependencies -->
+            <!-- Yaml-->
             <dependency>
                 <groupId>org.yaml</groupId>
                 <artifactId>snakeyaml</artifactId>
@@ -335,9 +217,9 @@
                         </execution>
                     </executions>
                     <configuration>
-                        <!-- <arguments>
+                        <arguments>
                             <argument>-X</argument>
-                        </arguments> -->
+                        </arguments>
                         <skip>true</skip>
                         <!-- <fork>true</fork>  -->
                         <executable>mvn</executable>
@@ -399,7 +281,7 @@
                     <executions>
                         <execution>
                             <id>analyze-deps</id>
-                            <phase>validate</phase>
+                            <phase>verify</phase>
                             <goals>
                                 <goal>analyze-only</goal>
                             </goals>
@@ -434,7 +316,7 @@
                     <executions>
                         <execution>
                             <id>enforce-versions</id>
-                            <phase>validate</phase>
+                            <phase>verify</phase>
                             <goals>
                                 <goal>enforce</goal>
                             </goals>
@@ -449,7 +331,7 @@
                                     </requireMavenVersion>
                                     <requireJavaVersion>
                                         <version>[${java.version},)</version>
-                                        <message>Invalid Java version. It should, at least, be 25</message>
+                                        <message>Invalid Java version. It should, at least, be 24</message>
                                     </requireJavaVersion>
                                 </rules>
                             </configuration>
