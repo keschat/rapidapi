@@ -1,4 +1,11 @@
-/home/kesi/workspace/java/yt/apiburn/rapidapi/rest/src/main/java/com/rapidapi/rest/config/JacksonConfig.java
-/home/kesi/workspace/java/yt/apiburn/rapidapi/rest/src/main/java/com/rapidapi/rest/model/Product.java
-/home/kesi/workspace/java/yt/apiburn/rapidapi/rest/src/main/java/com/rapidapi/rest/resource/ProductResource.java
-/home/kesi/workspace/java/yt/apiburn/rapidapi/rest/src/main/java/com/rapidapi/rest/service/ProductService.java
+/app/rest/src/main/java/com/rapidapi/rest/ApiApplication.java
+/app/rest/src/main/java/com/rapidapi/rest/config/JacksonConfig.java
+/app/rest/src/main/java/com/rapidapi/rest/flash/FlashMessage.java
+/app/rest/src/main/java/com/rapidapi/rest/flash/FlashMessageFeature.java
+/app/rest/src/main/java/com/rapidapi/rest/flash/FlashMessageManager.java
+/app/rest/src/main/java/com/rapidapi/rest/flash/MessageType.java
+/app/rest/src/main/java/com/rapidapi/rest/model/Product.java
+/app/rest/src/main/java/com/rapidapi/rest/resource/FlashTestResource.java
+/app/rest/src/main/java/com/rapidapi/rest/resource/ProductResource.java
+/app/rest/src/main/java/com/rapidapi/rest/resource/TestResource.java
+/app/rest/src/main/java/com/rapidapi/rest/service/ProductService.java

@@ -1,4 +1,4 @@
-package com.myapitutorial.core.server;
+package com.rapidapi.core.server;
 
 import java.io.InputStream;
 import java.security.Security;
@@ -35,8 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
-import com.myapitutorial.core.config.AppConfig;
-import com.myapitutorial.rest.ApiApplication;
+import com.rapidapi.core.config.AppConfig;
+import com.rapidapi.rest.ApiApplication;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -119,7 +119,7 @@ public class AppServer {
             }
         }, "/blank");
 
-        ServletContextHandler apiContext = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+        ServletContextHandler apiContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
         apiContext.setContextPath(ROOT_CONTEXT);
         apiContext.setBaseResource(apiContext.newResource(AppServer.class.getClassLoader().getResource("www")));
         apiContext.addServlet(DefaultServlet.class, ROOT_CONTEXT);

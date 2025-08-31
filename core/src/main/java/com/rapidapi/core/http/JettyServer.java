@@ -133,14 +133,14 @@ public class JettyServer {
 
         // Build connectors
         // HTTPS (8443): ssl -> alpn -> http/1.1 (HTTP/2 will be negotiated by ALPN)
-        ServerConnector https = new ServerConnector(
-                server,
-                new SslConnectionFactory(ssl, alpn.getProtocol()),
-                alpn,
-                new HttpConnectionFactory(httpsConfig));
-        https.setName("HTTPS");
-        https.setPort(serverConfig.getHttpsPort());
-        https.setIdleTimeout(serverConfig.getIdleTimeout());
+        // ServerConnector https = new ServerConnector(
+        //         server,
+        //         new SslConnectionFactory(ssl, alpn.getProtocol()),
+        //         alpn,
+        //         new HttpConnectionFactory(httpsConfig));
+        // https.setName("HTTPS");
+        // https.setPort(serverConfig.getHttpsPort());
+        // https.setIdleTimeout(serverConfig.getIdleTimeout());
 
         // HTTP (8080) plain: only used to redirect to HTTPS
         ServerConnector http = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
@@ -148,14 +148,14 @@ public class JettyServer {
         http.setPort(serverConfig.getHttpPort());
         http.setIdleTimeout(serverConfig.getIdleTimeout());
 
-        server.setConnectors(new Connector[] { https, http });
+        server.setConnectors(new Connector[] { http });
 
         // ---- App Handlers ----
         // 1) All insecure requests are redirected to HTTPS
-        SecuredRedirectHandler redirectAll = new SecuredRedirectHandler();
+        // SecuredRedirectHandler redirectAll = new SecuredRedirectHandler();
 
         // 2) Your webapp context (static + Jersey)
-        ServletContextHandler app = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+        ServletContextHandler app = new ServletContextHandler(ServletContextHandler.SESSIONS);
         app.setContextPath(serverConfig.getContextPath());
         // Static resources (optional)
         app.addServlet(DefaultServlet.class, serverConfig.getContextPath());

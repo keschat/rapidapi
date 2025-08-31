@@ -1,4 +1,13 @@
+com/rapidapi/rest/flash/FlashMessageManager.class
 com/rapidapi/rest/config/JacksonConfig.class
+com/rapidapi/rest/flash/FlashMessage.class
+com/rapidapi/rest/ApiApplication$1.class
+com/rapidapi/rest/resource/FlashTestResource.class
+com/rapidapi/rest/resource/TestResource.class
+com/rapidapi/rest/ApiApplication.class
+com/rapidapi/rest/flash/MessageType.class
+com/rapidapi/rest/flash/FlashMessageFeature$1.class
 com/rapidapi/rest/service/ProductService.class
 com/rapidapi/rest/model/Product.class
+com/rapidapi/rest/flash/FlashMessageFeature.class
 com/rapidapi/rest/resource/ProductResource.class
